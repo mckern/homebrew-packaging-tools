@@ -17,7 +17,7 @@ class RpmDownloadStrategy < CurlDownloadStrategy
   end
 end
 
-class Rpm < Formula
+class Rpm5 < Formula
   homepage 'http://www.rpm5.org/'
   url 'http://rpm5.org/files/rpm/rpm-5.4/rpm-5.4.14-0.20131024.src.rpm',
       :using => RpmDownloadStrategy
@@ -40,6 +40,7 @@ class Rpm < Formula
 
   def install
     args = %W[
+        --program-suffix=5
         --prefix=#{prefix}
         --localstatedir=#{var}
         --with-path-cfg=#{etc}/rpm
