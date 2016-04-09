@@ -1,7 +1,7 @@
 class Rpm4 < Formula
   homepage 'http://www.rpm.org/'
   url 'http://rpm.org/releases/rpm-4.12.x/rpm-4.12.0.1.tar.bz2'
-  sha1 'd416bdb249b246b00b2d5d34c66e7f5a68a62524'
+  sha256 '77ddd228fc332193c874aa0b424f41db1ff8b7edbb6a338703ef747851f50229'
 
   depends_on 'pkg-config' => :build
   depends_on 'nss'
@@ -14,8 +14,7 @@ class Rpm4 < Formula
   depends_on 'libarchive'
   depends_on :python
 
-  conflicts_with 'rpm', because: 'These are two different forks of the same tool.'
-  conflicts_with 'rpm5', because: 'These are two different forks of the same tool.'
+  conflicts_with 'rpm', because: 'These are conflicting forks of the same tool.'
 
   def patches
     DATA
@@ -24,18 +23,16 @@ class Rpm4 < Formula
   def install
     # some of nss/nspr formulae might be keg-only:
     ENV.append 'CPPFLAGS', "-I#{Formula['nss'].opt_include}/nss"
-    ENV.append 'LDFLAGS', "-L#{Formula['nss'].opt_lib}"
-
     ENV.append 'CPPFLAGS', "-I#{Formula['nspr'].opt_include}/nspr"
-    ENV.append 'LDFLAGS', "-L#{Formula['nspr'].opt_lib}"
-
+    ENV.append 'LDFLAGS', "-L#{Formula['nss'].opt_lib} -L#{Formula['nspr'].opt_lib}"
+    
+    # Append Python flags
+    ENV.append 'CFLAGS', `python-config --cflags`.chomp
     ENV.append 'LDFLAGS', `python-config --ldflags`.chomp
 
     # pkg-config support was removed from lua 5.2:
     ENV['LUA_CFLAGS'] = "-I#{HOMEBREW_PREFIX}/include/lua5.1"
     ENV['LUA_LIBS'] = "-L#{HOMEBREW_PREFIX}/lib -llua5.1"
-
-    ENV['__PYTHON'] = `which python2.7`.chomp
 
     args = %W(
       --disable-dependency-tracking
@@ -45,7 +42,8 @@ class Rpm4 < Formula
       --with-external-db
       --with-lua
       --without-hackingdocs
-      --enable-python)
+      --enable-python
+     )
 
     system './configure', *args
     system 'make'
