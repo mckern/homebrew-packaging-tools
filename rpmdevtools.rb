@@ -2,12 +2,12 @@ require 'formula'
 
 class Rpmdevtools < Formula
   homepage 'https://fedorahosted.org/rpmdevtools/'
-  url 'https://fedorahosted.org/releases/r/p/rpmdevtools/rpmdevtools-8.4.tar.xz'
-  version '8.4'
-  sha1 'b65681bc2890d9bcc0ec7c05b893c56cac3d7402'
+  url 'https://fedorahosted.org/releases/r/p/rpmdevtools/rpmdevtools-8.6.tar.xz'
+  version '8.6'
+  sha256 '566c6d7a05d80ab9e20414d6aa8df7328578261f3d997686e53da09917f66b38'
 
   depends_on 'help2man'
-  depends_on 'mckern/packaging-tools/rpm'
+  depends_on 'rpm4'
   depends_on :python
 
   patch :DATA
@@ -20,6 +20,18 @@ class Rpmdevtools < Formula
 
     system "./configure", *args
     system "make"
+
+    %w(
+      rpmdev-bumpspec
+      rpmdev-checksig
+      rpmdev-rmdevelrpms
+      rpmdev-rmdevelrpms.py
+      rpmdev-sort
+      rpmdev-vercmp
+    ).each do |bin|
+      inreplace bin, "#!/usr/bin/python", "#!/usr/bin/env python"
+    end
+
     system "make install"
   end
 end
