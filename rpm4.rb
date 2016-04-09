@@ -1,20 +1,21 @@
 class Rpm4 < Formula
-  homepage 'http://www.rpm.org/'
-  url 'http://rpm.org/releases/rpm-4.12.x/rpm-4.12.0.1.tar.bz2'
-  sha256 '77ddd228fc332193c874aa0b424f41db1ff8b7edbb6a338703ef747851f50229'
+  desc "Version 4 of the Standard RPM Package Manager"
+  homepage "http://www.rpm.org/"
+  url "http://rpm.org/releases/rpm-4.12.x/rpm-4.12.0.1.tar.bz2"
+  sha256 "77ddd228fc332193c874aa0b424f41db1ff8b7edbb6a338703ef747851f50229"
 
-  depends_on 'pkg-config' => :build
-  depends_on 'nss'
-  depends_on 'nspr'
-  depends_on 'libmagic'
-  depends_on 'popt'
-  depends_on 'lua51'
-  depends_on 'berkeley-db'
-  depends_on 'xz'
-  depends_on 'libarchive'
+  depends_on "pkg-config" => :build
+  depends_on "nss"
+  depends_on "nspr"
+  depends_on "libmagic"
+  depends_on "popt"
+  depends_on "lua51"
+  depends_on "berkeley-db"
+  depends_on "xz"
+  depends_on "libarchive"
   depends_on :python
 
-  conflicts_with 'rpm', because: 'These are conflicting forks of the same tool.'
+  conflicts_with "rpm", :because => "These are conflicting forks of the same tool."
 
   def patches
     DATA
@@ -22,19 +23,18 @@ class Rpm4 < Formula
 
   def install
     # some of nss/nspr formulae might be keg-only:
-    ENV.append 'CPPFLAGS', "-I#{Formula['nss'].opt_include}/nss"
-    ENV.append 'CPPFLAGS', "-I#{Formula['nspr'].opt_include}/nspr"
-    ENV.append 'LDFLAGS', "-L#{Formula['nss'].opt_lib} -L#{Formula['nspr'].opt_lib}"
+    ENV.append "CPPFLAGS", "-I#{Formula["nss"].opt_include}/nss"
+    ENV.append "CPPFLAGS", "-I#{Formula["nspr"].opt_include}/nspr"
+    ENV.append "LDFLAGS", "-L#{Formula["nss"].opt_lib} -L#{Formula["nspr"].opt_lib}"
 
     # Append Python flags
-    ENV.append 'CFLAGS', `python-config --cflags`.chomp
-    ENV.append 'LDFLAGS', `python-config --ldflags`.chomp
+    ENV.append "CFLAGS", "-undefined dynamic_lookup"
 
     # pkg-config support was removed from lua 5.2:
-    ENV['LUA_CFLAGS'] = "-I#{HOMEBREW_PREFIX}/include/lua5.1"
-    ENV['LUA_LIBS'] = "-L#{HOMEBREW_PREFIX}/lib -llua5.1"
+    ENV["LUA_CFLAGS"] = "-I#{HOMEBREW_PREFIX}/include/lua5.1"
+    ENV["LUA_LIBS"] = "-L#{HOMEBREW_PREFIX}/lib -llua5.1"
 
-    args = %W(
+    args = %W[
       --disable-dependency-tracking
       --prefix=#{prefix}
       --sysconfdir=#{HOMEBREW_PREFIX}/etc
@@ -43,20 +43,66 @@ class Rpm4 < Formula
       --with-lua
       --without-hackingdocs
       --enable-python
-    )
+    ]
 
-    system './configure', *args
-    system 'make'
-    system 'make install'
+    system "./configure", *args
+    system "make"
+    system "make", "install"
 
     # the default install makes /usr/bin/rpmquery a symlink to /bin/rpm
-    # by using ../.. but that doesn't really work with any other prefix.
-    ln_sf 'rpm', "#{bin}/rpmquery"
-    ln_sf 'rpm', "#{bin}/rpmverify"
+    # by using ../.. but that doesn"t really work with any other prefix.
+    ln_sf "rpm", "#{bin}/rpmquery"
+    ln_sf "rpm", "#{bin}/rpmverify"
+  end
+
+  def test_spec
+    <<-EOS.undent
+      Summary:   Test package
+      Name:      test
+      Version:   1.0
+      Release:   1
+      License:   Public Domain
+      Group:     Development/Tools
+      BuildArch: noarch
+
+      %description
+      Trivial test package
+
+      %prep
+      %build
+      %install
+      mkdir -p $RPM_BUILD_ROOT/tmp
+      touch $RPM_BUILD_ROOT/tmp/test
+
+      %files
+      /tmp/test
+
+      %changelog
+
+    EOS
+  end
+
+  def rpmdir(macro)
+    Pathname.new(`#{bin}/rpm --eval #{macro}`.chomp)
+  end
+
+  test do
+    (testpath/"var/lib/rpm").mkpath
+    (testpath/".rpmmacros").write <<-EOS.undent
+      %_topdir		#{testpath}/var/lib/rpm
+      %_specdir		%{_topdir}/SPECS
+      %_tmppath		%{_topdir}/tmp
+    EOS
+
+    system "#{bin}/rpm", "-vv", "-qa", "--dbpath=#{testpath}"
+    rpmdir("%_builddir").mkpath
+    specfile = rpmdir("%_specdir")+"test.spec"
+    specfile.write(test_spec)
+    system "#{bin}/rpmbuild", "-ba", specfile
+    assert File.exist?(testpath/"var/lib/rpm/SRPMS/test-1.0-1.src.rpm")
   end
 end
 
-# rubocop:disable Style/TrailingWhitespace, Style/Tab
 __END__
 diff --git a/lib/poptALL.c b/lib/poptALL.c
 index 541e8c4..5cecc2a 100644
