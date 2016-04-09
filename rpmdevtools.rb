@@ -13,13 +13,13 @@ class Rpmdevtools < Formula
   patch :DATA
 
   def install
-    args = %W[
-        --prefix=#{prefix}
-        --localstatedir=#{var}
-    ]
+    args = %W(
+      --prefix=#{prefix}
+      --localstatedir=#{var}
+    )
 
-    system "./configure", *args
-    system "make"
+    system './configure', *args
+    system 'make'
 
     %w(
       rpmdev-bumpspec
@@ -29,10 +29,10 @@ class Rpmdevtools < Formula
       rpmdev-sort
       rpmdev-vercmp
     ).each do |bin|
-      inreplace bin, "#!/usr/bin/python", "#!/usr/bin/env python"
+      inreplace bin, '#!/usr/bin/python', '#!/usr/bin/env python'
     end
 
-    system "make install"
+    system 'make install'
   end
 end
 

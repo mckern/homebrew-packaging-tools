@@ -25,7 +25,7 @@ class Rpm4 < Formula
     ENV.append 'CPPFLAGS', "-I#{Formula['nss'].opt_include}/nss"
     ENV.append 'CPPFLAGS', "-I#{Formula['nspr'].opt_include}/nspr"
     ENV.append 'LDFLAGS', "-L#{Formula['nss'].opt_lib} -L#{Formula['nspr'].opt_lib}"
-    
+
     # Append Python flags
     ENV.append 'CFLAGS', `python-config --cflags`.chomp
     ENV.append 'LDFLAGS', `python-config --ldflags`.chomp
@@ -43,7 +43,7 @@ class Rpm4 < Formula
       --with-lua
       --without-hackingdocs
       --enable-python
-     )
+    )
 
     system './configure', *args
     system 'make'
