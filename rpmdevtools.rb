@@ -16,6 +16,8 @@ class Rpmdevtools < Formula
       --localstatedir=#{var}
     ]
 
+    ENV.append "CFLAGS", "-undefined dynamic_lookup"
+
     system "./configure", *args
     system "make"
 
