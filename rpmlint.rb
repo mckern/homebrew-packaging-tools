@@ -8,7 +8,7 @@ class Rpmlint < Formula
   depends_on "libmagic" => [:recommended, "with-python"]
   depends_on "enchant" => [:recommended, "with-python"]
   depends_on "xz"
-  depends_on :python
+  depends_on "python"
 
   def install
     inreplace "rpmlint", "/usr/share/rpmlint/config", "#{HOMEBREW_PREFIX}/etc/rpmlint/config"
